@@ -200,6 +200,7 @@ function install_vtk()
   fi
   tar xzf pkg
   cd "VTK${pkg_ver}"
+  sed -i 's/\/\/\#define GLX_GLXEXT_LEGACY/\#define GLX_GLXEXT_LEGACY/g' Rendering/vtkXOpenGLRenderWindow.cxx
   mkdir build && cd build
   cmake .. \
     -Wno-dev \
