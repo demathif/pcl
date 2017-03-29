@@ -35,7 +35,7 @@ function build_clang ()
         -DBUILD_global_tests=OFF \
         $PCL_DIR
   # Build
-  make -j2
+  make "-j$(nproc)"
 }
 
 function build_gcc ()
@@ -69,7 +69,7 @@ function build_gcc ()
         -DBUILD_visualization=OFF \
         $PCL_DIR
   # Build
-  make -j2
+  make "-j$(nproc)"
 }
 
 function test ()
@@ -170,7 +170,7 @@ function install_flann()
     -DBUILD_CUDA_LIB=OFF \
     -DBUILD_C_BINDINGS=OFF \
     -DUSE_OPENMP=OFF
-  make -j2 && make install && touch ${config}
+  make "-j$(nproc)" && make install && touch ${config}
   return $?
 }
 
@@ -230,7 +230,7 @@ function install_vtk()
     -DVTK_USE_GUISUPPORT=OFF \
     -DVTK_USE_SYSTEM_ZLIB=ON \
     -DCMAKE_CXX_FLAGS="-D__STDC_CONSTANT_MACROS"
-  make -j2 && make install && touch ${config}
+  make "-j$(nproc)" && make install && touch ${config}
   return $?
 }
 
@@ -266,7 +266,7 @@ function install_qhull()
     -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_C_FLAGS=-fPIC \
     -DCMAKE_INSTALL_PREFIX=$QHULL_DIR
-  make -j2 && make install && touch ${announce}
+  make "-j$(nproc)" && make install && touch ${announce}
   return $?
 }
 
@@ -296,7 +296,7 @@ function install_doxygen()
   tar xzf pkg
   cd ${pkg_file}
   ./configure --prefix $DOXYGEN_DIR
-  make -j2 && make install
+  make "-j$(nproc)" && make install
   return $?
 }
 
