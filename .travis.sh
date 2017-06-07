@@ -1,6 +1,8 @@
 #!/bin/sh
 
 PCL_DIR=`pwd`
+SOURCE="$PCL_DIR/.."
+PREFIX="$PCL_DIR/../../sandbox"
 BUILD_DIR=$PCL_DIR/build
 DOC_DIR=$BUILD_DIR/doc/doxygen/html
 
@@ -10,12 +12,12 @@ ADVANCED_DIR=$BUILD_DIR/doc/advanced/html
 CMAKE_C_FLAGS="-Wall -Wextra -Wabi -O2"
 CMAKE_CXX_FLAGS="-Wall -Wextra -Wabi -O2"
 
-DOWNLOAD_DIR=$HOME/download
+DOWNLOAD_DIR=$SOURCE/download
 
-export FLANN_ROOT=$HOME/flann
-export VTK_DIR=$HOME/vtk
-export QHULL_ROOT=$HOME/qhull
-export DOXYGEN_DIR=$HOME/doxygen
+export FLANN_ROOT=$PREFIX
+export VTK_DIR=$PREFIX
+export QHULL_ROOT=$PREFIX
+export DOXYGEN_DIR=$PREFIX
 
 function build ()
 {
@@ -141,8 +143,8 @@ function install_flann()
   local pkg_file="flann-${pkg_ver}-src"
   local pkg_url="http://people.cs.ubc.ca/~mariusm/uploads/FLANN/${pkg_file}.zip"
   local pkg_md5sum="a0ecd46be2ee11a68d2a7d9c6b4ce701"
-  local FLANN_DIR=$HOME/flann
-  local config=$FLANN_DIR/include/flann/config.h
+  local FLANN_DIR=$SOURCE/flann
+  local config=$PREFIX/include/flann/config.h
   echo "Installing FLANN ${pkg_ver}"
   if [[ -d $FLANN_DIR ]]; then
     if [[ -e ${config} ]]; then
@@ -159,12 +161,12 @@ function install_flann()
   if [[ $? -ne 0 ]]; then
     return $?
   fi
-  unzip -qq pkg
-  cd ${pkg_file}
+  unzip -qq pkg -d $FLANN_DIR
+  cd $FLANN_DIR/${pkg_file}
   mkdir build && cd build
   cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=$FLANN_DIR \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DBUILD_MATLAB_BINDINGS=OFF \
     -DBUILD_PYTHON_BINDINGS=OFF \
     -DBUILD_CUDA_LIB=OFF \
@@ -180,8 +182,8 @@ function install_vtk()
   local pkg_file="vtk-${pkg_ver}"
   local pkg_url="http://www.vtk.org/files/release/${pkg_ver:0:4}/${pkg_file}.tar.gz"
   local pkg_md5sum="264b0052e65bd6571a84727113508789"
-  local VTK_DIR=$HOME/vtk
-  local config=$VTK_DIR/include/vtk-${pkg_ver:0:4}/vtkConfigure.h
+  local VTK_DIR=$SOURCE/vtk
+  local config=$PREFIX/include/vtk-${pkg_ver:0:4}/vtkConfigure.h
   echo "Installing VTK ${pkg_ver}"
   if [[ -d $VTK_DIR ]]; then
     if [[ -e ${config} ]]; then
@@ -198,15 +200,16 @@ function install_vtk()
   if [[ $? -ne 0 ]]; then
     return $?
   fi
-  tar xzf pkg
-  cd "VTK${pkg_ver}"
+  mkdir -p $VTK_DIR
+  tar xzf pkg -C $VTK_DIR
+  cd $VTK_DIR/"VTK${pkg_ver}"
   sed -i 's/\/\/\#define GLX_GLXEXT_LEGACY/\#define GLX_GLXEXT_LEGACY/g' Rendering/vtkXOpenGLRenderWindow.cxx
-  mkdir build && cd build
+  mkdir -p build && cd build
   cmake .. \
     -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=$VTK_DIR \
+    -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DBUILD_DOCUMENTATION=OFF \
     -DBUILD_EXAMPLES=OFF \
     -DBUILD_TESTING=OFF \
@@ -240,8 +243,8 @@ function install_qhull()
   local pkg_file="qhull-${pkg_ver}"
   local pkg_url="http://www.qhull.org/download/${pkg_file}-src.tgz"
   local pkg_md5sum="d0f978c0d8dfb2e919caefa56ea2953c"
-  local QHULL_DIR=$HOME/qhull
-  local announce=$QHULL_DIR/share/doc/qhull/Announce.txt
+  local QHULL_DIR=$SOURCE/qhull
+  local announce=$PREFIX/share/doc/qhull/Announce.txt
   echo "Installing QHull ${pkg_ver}"
   if [[ -d $QHULL_DIR ]]; then
     if [[ -e ${announce} ]]; then
@@ -258,14 +261,15 @@ function install_qhull()
   if [[ $? -ne 0 ]]; then
     return $?
   fi
-  tar xzf pkg
-  cd ${pkg_file}
+  mkdir -p $QHULL_DIR
+  tar xzf pkg -C $QHULL_DIR
+  cd $QHULL_DIR/${pkg_file}
   mkdir -p build && cd build
   cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_FLAGS=-fPIC \
     -DCMAKE_C_FLAGS=-fPIC \
-    -DCMAKE_INSTALL_PREFIX=$QHULL_DIR
+    -DCMAKE_INSTALL_PREFIX=$PREFIX
   make "-j$(nproc)" && make install && touch ${announce}
   return $?
 }
@@ -276,7 +280,7 @@ function install_doxygen()
   local pkg_file="doxygen-${pkg_ver}"
   local pkg_url="http://ftp.stack.nl/pub/users/dimitri/${pkg_file}.src.tar.gz"
   local pkg_md5sum="3d1a5c26bef358c10a3894f356a69fbc"
-  local DOXYGEN_EXE=$DOXYGEN_DIR/bin/doxygen
+  local DOXYGEN_EXE=$PREFIX/bin/doxygen
   echo "Installing Doxygen ${pkg_ver}"
   if [[ -d $DOXYGEN_DIR ]]; then
     if [[ -e $DOXYGEN_EXE ]]; then
@@ -293,9 +297,10 @@ function install_doxygen()
   if [[ $? -ne 0 ]]; then
     return $?
   fi
-  tar xzf pkg
-  cd ${pkg_file}
-  ./configure --prefix $DOXYGEN_DIR
+  mkdir -p $DOXYGEN_DIR
+  tar xzf pkg -C $DOXYGEN_DIR
+  cd $DOXYGEN_DIR/${pkg_file}
+  ./configure --prefix $PREFIX
   make "-j$(nproc)" && make install
   return $?
 }
